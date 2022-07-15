@@ -1,5 +1,5 @@
-import { Play } from 'phosphor-react';
-import { CountdownContainer, FormContainer, HomeContainer, MinutesAmountInput, Separator, StartCountdownButton, TaskInput } from './stylesHome';
+import { HandPalm, Play } from 'phosphor-react';
+import { CountdownContainer, FormContainer, HomeContainer, MinutesAmountInput, Separator, StartCountDownButton, StopCountDownButton, TaskInput } from './stylesHome';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as zod from 'zod';
@@ -20,7 +20,8 @@ interface Cycle {
 	id: string;
 	task: string;
 	minutesAmount: number;
-	startDate: Date
+	startDate: Date;
+	interruptedDate?: Date
 }
 
 export function Home() {
@@ -86,6 +87,18 @@ export function Home() {
 		reset();
 	}
 
+	function handleInterruptCycle(){
+		setCycles(cycles.map(cycle => {
+			if(cycle.id === activeCycleId){
+				return {...cycle, interruptedDate: new Date()};
+			}else{
+				return cycle;
+			}
+		}));
+
+		setActiveCycleId(null);
+	}
+
 	return (
 		<HomeContainer>
 			<form onSubmit={handleSubmit(handleCreateNewCycle)}>
@@ -96,6 +109,7 @@ export function Home() {
 						placeholder='Dê um nome para o seu projeto' 
 						id="task" 
 						list='task-suggestions'
+						disabled={!!activeCycle}
 						{...register('task')}
 					/>
 					
@@ -112,6 +126,7 @@ export function Home() {
 						step={5}
 						min={5}
 						max={60}
+						disabled={!!activeCycle}
 						{...register('minutesAmount', { valueAsNumber : true })}
 					/>
 					
@@ -126,10 +141,18 @@ export function Home() {
 					<span>{seconds[1]}</span>
 				</CountdownContainer>
 
-				<StartCountdownButton type="submit" disabled={isSubmitDisabled}>
-					<Play />
-					Começar
-				</StartCountdownButton>
+				{ activeCycle ? (
+					<StopCountDownButton type="button" onClick={handleInterruptCycle}>
+						<HandPalm size={24} />
+						Parar
+					</StopCountDownButton>
+				) : (
+					<StartCountDownButton type="submit" disabled={isSubmitDisabled}>
+						<Play size={24} />
+						Começar
+					</StartCountDownButton>
+				) }
+
 			</form>
 		</HomeContainer>
 	);
